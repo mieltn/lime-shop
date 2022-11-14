@@ -15,7 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from main.views import (
+    CategoriesView,
+    SingleCategoryView,
+    RecipesView,
+    RecipeDetails
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('categories/', CategoriesView.as_view()),
+    path('categories/<int:category_id>', SingleCategoryView.as_view()),
+    path('recipes/', RecipesView.as_view()),
+    path('recipes/<int:recipe_id>', RecipeDetails.as_view()),
 ]

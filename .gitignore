@@ -1,2 +1,4 @@
 /venv
 **__pycache__
+**00*.py
+*.sqlite3
