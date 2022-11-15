@@ -24,7 +24,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    username = models.CharField(max_length=128)
+    username = models.CharField(max_length=128, unique=True)
     basket = models.OneToOneField(Basket, on_delete=models.CASCADE)
 
     is_active = models.BooleanField(default=True)
@@ -33,7 +33,6 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    # REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.username
