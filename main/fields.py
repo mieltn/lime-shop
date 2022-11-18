@@ -10,6 +10,15 @@ class CategoryRelatedField(serializers.RelatedField):
         return value.name
 
 
+class CuisineRelatedField(serializers.RelatedField):
+    def to_internal_value(self, data):
+        model = self.queryset.model
+        return model.objects.get(name=data)
+
+    def to_representation(self, value):
+        return value.name
+
+
 class IngredientRelatedField(serializers.RelatedField):
     def to_internal_value(self, data):
         model = self.queryset.model

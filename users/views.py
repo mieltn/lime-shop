@@ -4,19 +4,22 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from limeshop.permissions import IsAdminOrReadOnly
 from .serializers import UserSerializer
 
 
 class UserView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user.is_admin:
+            return Response(
+                {"msg": "admin access is required for this action"}
+            )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

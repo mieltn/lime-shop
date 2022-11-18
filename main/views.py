@@ -4,19 +4,23 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
-from limeshop.permissions import IsAdminOrReadOnly
-from .models import Category, Recipe, Ingredient, Basket
+from limeshop.permissions import IsAuthAdminOrReadOnly
+from .models import Category, Cuisine, Recipe, Ingredient, Basket
 from .serializers import (
     CategorySerializer,
+    CuisineSerializer,
     RecipeSerializer,
     RecipeReadSerializer,
     IngredientSerializer,
     BasketSerializer,
     BasketReadSerializer
 )
+from . import utils
 
 
 class CategoriesView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthAdminOrReadOnly]
 
     def get(self, request):
         categories = Category.objects.all()
@@ -24,7 +28,39 @@ class CategoriesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"msg": "authentication is required for this action"}
+            )
+        if not request.user.is_admin:
+            return Response(
+                {"msg": "admin access is required for this action"}
+            )
         serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CuisineView(APIView):
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request):
+        cuisine = Cuisine.objects.all()
+        serializer = CuisineSerializer(cuisine, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"msg": "authentication is required for this action"}
+            )
+        if not request.user.is_admin:
+            return Response(
+                {"msg": "admin access is required for this action"}
+            )
+        serializer = CuisineSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -41,7 +77,6 @@ class SingleCategoryView(APIView):
 
 class IngredientsView(APIView):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         ingredients = Ingredient.objects.all()
@@ -49,6 +84,14 @@ class IngredientsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"msg": "authentication is required for this action"}
+            )
+        if not request.user.is_admin:
+            return Response(
+                {"msg": "admin access is required for this action"}
+            )
         serializer = IngredientSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -57,14 +100,37 @@ class IngredientsView(APIView):
 
 
 class RecipesView(APIView):
-    permission_classes = [IsAdminOrReadOnly]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthAdminOrReadOnly]
 
     def get(self, request):
-        recipes = Recipe.objects.all()
+        categories = utils.set_filter(request, Category, 'category')
+        cuisine = utils.set_filter(request, Cuisine, 'cuisine')
+        # cooking_time = utils.set_filter(request, )
+        ingredients = utils.set_filter(request, Ingredient, 'ingredient')
+        
+        recipes = (
+            Recipe.objects
+            .filter(
+                category__in=categories,
+                ingredients__in=ingredients,
+                cuisine__in=cuisine)
+            .distinct()
+            .all()
+        )
+
         serializer = RecipeReadSerializer(recipes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {"msg": "authentication is required for this action"}
+            )
+        if not request.user.is_admin:
+            return Response(
+                {"msg": "admin access is required for this action"}
+            )
         serializer = RecipeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -73,7 +139,6 @@ class RecipesView(APIView):
 
 
 class RecipeDetails(APIView):
-
     def get(self, request, recipe_id):
         recipe = Recipe.objects.get(pk=recipe_id)
         serializer = RecipeSerializer(recipe)
@@ -118,10 +183,9 @@ class ClearBasketView(APIView):
 
     def delete(self, request):
         basket = Basket.objects.get(pk=request.user.basket.id)
-        basket.ingredients.all().delete()
+        basket.clear_basket()
         basket.total = basket.get_total()
         basket.save()
-
         serializer = BasketSerializer(basket)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

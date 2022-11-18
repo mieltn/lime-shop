@@ -1,18 +1,20 @@
 from django.urls import path
 from .views import (
     CategoriesView,
+    CuisineView,
     SingleCategoryView,
     IngredientsView,
     RecipesView,
     RecipeDetails,
     BasketView,
-    # UpdateBasketView,
     ClearBasketView,
 )
 
 urlpatterns = [
     path('categories/', CategoriesView.as_view()),
     path('categories/<int:category_id>', SingleCategoryView.as_view()),
+
+    path('cuisine/', CuisineView.as_view()),
 
     path('ingredients/', IngredientsView.as_view()),
 
@@ -21,5 +23,5 @@ urlpatterns = [
 
     path('basket/', BasketView.as_view()),
     path('basket/ingredients/', BasketView.as_view()),
-    path('basket/purchase/', ClearBasketView.as_view())
+    path('basket/checkout/', ClearBasketView.as_view()),
 ]

@@ -8,6 +8,13 @@ class Category(models.Model):
         return self.name
 
 
+class Cuisine(models.Model):
+    name = models.CharField(max_length=128)
+    
+    def __str__(self):
+        return self.name
+
+
 class Ingredient(models.Model):
     name = models.CharField(max_length=128)
     price = models.DecimalField(decimal_places=2, max_digits=10)
@@ -21,6 +28,7 @@ class Recipe(models.Model):
     description = models.CharField(max_length=1024)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     ingredients = models.ManyToManyField(Ingredient)
+    cuisine = models.ForeignKey(Cuisine, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -40,4 +48,8 @@ class Basket(models.Model):
 
     def get_total(self):
         return sum([ingredient.price for ingredient in self.ingredients.all()])
+
+    def clear_basket(self):
+        for ingredient in self.ingredients.all():
+            self.remove_ingredient(ingredient)
 
