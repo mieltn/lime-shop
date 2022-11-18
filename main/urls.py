@@ -6,7 +6,7 @@ from .views import (
     RecipesView,
     RecipeDetails,
     BasketView,
-    UpdateBasketView,
+    # UpdateBasketView,
     ClearBasketView,
 )
 
@@ -20,6 +20,6 @@ urlpatterns = [
     path('recipes/<int:recipe_id>', RecipeDetails.as_view()),
 
     path('basket/', BasketView.as_view()),
-    path('basket/ingredients/<int:ingredient_id>', UpdateBasketView.as_view()),
+    path('basket/ingredients/', BasketView.as_view()),
     path('basket/purchase/', ClearBasketView.as_view())
 ]

@@ -1,7 +1,10 @@
 from rest_framework.views import APIView
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
+from limeshop.permissions import IsAdminOrReadOnly
 from .models import Category, Recipe, Ingredient, Basket
 from .serializers import (
     CategorySerializer,
@@ -37,6 +40,8 @@ class SingleCategoryView(APIView):
 
 
 class IngredientsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         ingredients = Ingredient.objects.all()
@@ -52,6 +57,7 @@ class IngredientsView(APIView):
 
 
 class RecipesView(APIView):
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request):
         recipes = Recipe.objects.all()
@@ -75,35 +81,17 @@ class RecipeDetails(APIView):
 
 
 class BasketView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "to access basket user needs to login"},
-                status = status.HTTP_401_UNAUTHORIZED
-            )
         basket = Basket.objects.get(pk=request.user.basket.id)
         serializer = BasketReadSerializer(basket)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = BasketSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UpdateBasketView(APIView):
-
-    def patch(self, request, ingredient_id):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "to access basket user needs to login"},
-                status = status.HTTP_401_UNAUTHORIZED
-            )
+    def patch(self, request):
         basket = Basket.objects.get(pk=request.user.basket.id)
-        ingredient = Ingredient.objects.get(pk=ingredient_id)
+        ingredient = Ingredient.objects.get(name=request.data['name'])
 
         basket = basket.add_ingredient(ingredient)
         basket.total = basket.get_total()
@@ -112,14 +100,9 @@ class UpdateBasketView(APIView):
         serializer = BasketSerializer(basket)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, ingredient_id):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "to access basket user needs to login"},
-                status = status.HTTP_401_UNAUTHORIZED
-            )
+    def delete(self, request):
         basket = Basket.objects.get(pk=request.user.basket.id)
-        ingredient = Ingredient.objects.get(pk=ingredient_id)
+        ingredient = Ingredient.objects.get(name=request.data['name'])
 
         basket = basket.remove_ingredient(ingredient)
         basket.total = basket.get_total()
@@ -130,12 +113,10 @@ class UpdateBasketView(APIView):
 
 
 class ClearBasketView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def delete(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "to access basket user needs to login"},
-                status = status.HTTP_401_UNAUTHORIZED
-            )
         basket = Basket.objects.get(pk=request.user.basket.id)
         basket.ingredients.all().delete()
         basket.total = basket.get_total()
