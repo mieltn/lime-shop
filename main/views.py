@@ -12,8 +12,9 @@ from .serializers import (
     RecipeSerializer,
     RecipeReadSerializer,
     IngredientSerializer,
+    # ItemSerializer,
     BasketSerializer,
-    BasketReadSerializer
+    # BasketReadSerializer
 )
 from . import utils
 
@@ -149,45 +150,58 @@ class BasketView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        basket = Basket.objects.get(pk=request.user.basket.id)
-        serializer = BasketReadSerializer(basket)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # def get(self, request):
+    #     basket = Basket.objects.get(pk=request.user.basket.id)
+    #     serializer = BasketReadSerializer(basket)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request):
-        basket = Basket.objects.get(pk=request.user.basket.id)
-        ingredient = Ingredient.objects.get(name=request.data['name'])
+    # def patch(self, request):
+    #     basket = Basket.objects.get(pk=request.user.basket.id)
+    #     ingredient = Ingredient.objects.get(name=request.data['name'])
 
-        basket = basket.add_ingredient(ingredient)
-        basket.total = basket.get_total()
-        basket.save()
+    #     basket = basket.add_ingredient(ingredient)
+    #     basket.total = basket.get_total()
+    #     basket.save()
 
-        serializer = BasketSerializer(basket)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    #     serializer = BasketSerializer(basket)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request):
-        basket = Basket.objects.get(pk=request.user.basket.id)
-        ingredient = Ingredient.objects.get(name=request.data['name'])
+    # def delete(self, request):
+    #     basket = Basket.objects.get(pk=request.user.basket.id)
+    #     ingredient = Ingredient.objects.get(name=request.data['name'])
 
-        basket = basket.remove_ingredient(ingredient)
-        basket.total = basket.get_total()
-        basket.save()
+    #     basket = basket.remove_ingredient(ingredient)
+    #     basket.total = basket.get_total()
+    #     basket.save()
         
-        serializer = BasketSerializer(basket)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    #     serializer = BasketSerializer(basket)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request):
+        basket = utils.calculate_basket(Basket, request.user)
+        return Response(basket, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        request.data['user'] = request.user.id
+        serializer = BasketSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            basket = utils.calculate_basket(request.user.id)
+            return Response(basket, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ClearBasketView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+# class ClearBasketView(APIView):
+#     authentication_classes = [TokenAuthentication]
+#     permission_classes = [IsAuthenticated]
 
-    def delete(self, request):
-        basket = Basket.objects.get(pk=request.user.basket.id)
-        basket.clear_basket()
-        basket.total = basket.get_total()
-        basket.save()
-        serializer = BasketSerializer(basket)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#     def delete(self, request):
+#         basket = Basket.objects.get(pk=request.user.basket.id)
+#         basket.clear_basket()
+#         basket.total = basket.get_total()
+#         basket.save()
+#         serializer = BasketSerializer(basket)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

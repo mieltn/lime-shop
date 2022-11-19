@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-from main.models import Basket
+# from main.models import Basket
 
 
 class UserManager(BaseUserManager):
@@ -10,7 +10,7 @@ class UserManager(BaseUserManager):
         user = self.model(username=username)
         user.set_password(password)
 
-        user.basket = Basket.objects.create()
+        # user.basket = Basket.objects.create()
         user.save()
         return user
 
@@ -25,7 +25,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     username = models.CharField(max_length=128, unique=True)
-    basket = models.OneToOneField(Basket, on_delete=models.CASCADE)
+    # basket = models.OneToOneField(Basket, on_delete=models.CASCADE)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
