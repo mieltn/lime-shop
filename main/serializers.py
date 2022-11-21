@@ -47,27 +47,3 @@ class BasketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Basket
         fields = ('ingredient', 'user')
-
-    
-
-
-# class BasketSerializer(serializers.ModelSerializer):
-    # ingredients = IngredientRelatedField(queryset=Ingredient.objects.all(), required=False)
-    # total = serializers.DecimalField(decimal_places=2, max_digits=10, required=False)
-
-    # class Meta:
-    #     model = Basket
-    #     fields = ('id', 'ingredients', 'total')
-
-    # def create(self, validated_data):
-    #     ingredients = validated_data.pop('ingredients')
-    #     newBasket = Basket.objects.create(**validated_data)
-    #     for ingredient in ingredients:
-    #         newBasket.add_ingredient(ingredient)
-    #     newBasket.total = newBasket.get_total()
-    #     newBasket.save()
-    #     return newBasket
-
-
-# class BasketReadSerializer(BasketSerializer):
-#     ingredients = serializers.StringRelatedField(many=True)

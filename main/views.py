@@ -150,33 +150,6 @@ class BasketView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    # def get(self, request):
-    #     basket = Basket.objects.get(pk=request.user.basket.id)
-    #     serializer = BasketReadSerializer(basket)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def patch(self, request):
-    #     basket = Basket.objects.get(pk=request.user.basket.id)
-    #     ingredient = Ingredient.objects.get(name=request.data['name'])
-
-    #     basket = basket.add_ingredient(ingredient)
-    #     basket.total = basket.get_total()
-    #     basket.save()
-
-    #     serializer = BasketSerializer(basket)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def delete(self, request):
-    #     basket = Basket.objects.get(pk=request.user.basket.id)
-    #     ingredient = Ingredient.objects.get(name=request.data['name'])
-
-    #     basket = basket.remove_ingredient(ingredient)
-    #     basket.total = basket.get_total()
-    #     basket.save()
-        
-    #     serializer = BasketSerializer(basket)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
     def get(self, request):
         basket = utils.calculate_basket(request.user.id)
         return Response(basket, status=status.HTTP_200_OK)
@@ -209,20 +182,3 @@ class ClearBasketView(APIView):
             {"msg": "successfully cleared the basket"},
             status=status.HTTP_200_OK
         )
-
-
-
-# class ClearBasketView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def delete(self, request):
-#         basket = Basket.objects.get(pk=request.user.basket.id)
-#         basket.clear_basket()
-#         basket.total = basket.get_total()
-#         basket.save()
-#         serializer = BasketSerializer(basket)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-

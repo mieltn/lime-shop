@@ -35,25 +35,6 @@ class Recipe(models.Model):
         return self.name
 
 
-# class Basket(models.Model):
-#     ingredients = models.ManyToManyField(Ingredient)
-#     total = models.DecimalField(decimal_places=2, max_digits=10, null=True)
-
-#     def add_ingredient(self, ingredient):
-#         self.ingredients.add(ingredient)
-#         return self
-
-#     def remove_ingredient(self, ingredient):
-#         self.ingredients.remove(ingredient)
-#         return self
-
-#     def get_total(self):
-#         return sum([ingredient.price for ingredient in self.ingredients.all()])
-
-#     def clear_basket(self):
-#         for ingredient in self.ingredients.all():
-#             self.remove_ingredient(ingredient)
-
 class Basket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
