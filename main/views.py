@@ -178,7 +178,7 @@ class BasketView(APIView):
     #     return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get(self, request):
-        basket = utils.calculate_basket(Basket, request.user)
+        basket = utils.calculate_basket(request.user.id)
         return Response(basket, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -189,6 +189,27 @@ class BasketView(APIView):
             basket = utils.calculate_basket(request.user.id)
             return Response(basket, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        ingredient = Ingredient.objects.get(name=request.data.get('ingredient'))
+        item = Basket.objects.filter(user=request.user, ingredient=ingredient).first()
+        item.delete()
+        basket = utils.calculate_basket(request.user.id)
+        return Response(basket, status=status.HTTP_200_OK)
+
+
+class ClearBasketView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        items = Basket.objects.filter(user=request.user)
+        items.delete()
+        return Response(
+            {"msg": "successfully cleared the basket"},
+            status=status.HTTP_200_OK
+        )
+
 
 
 # class ClearBasketView(APIView):
