@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -12,9 +12,7 @@ from .serializers import (
     RecipeSerializer,
     RecipeReadSerializer,
     IngredientSerializer,
-    # ItemSerializer,
     BasketSerializer,
-    # BasketReadSerializer
 )
 from . import utils
 
@@ -29,14 +27,6 @@ class CategoriesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "authentication is required for this action"}
-            )
-        if not request.user.is_admin:
-            return Response(
-                {"msg": "admin access is required for this action"}
-            )
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -46,6 +36,7 @@ class CategoriesView(APIView):
 
 class CuisineView(APIView):
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthAdminOrReadOnly]
 
     def get(self, request):
         cuisine = Cuisine.objects.all()
@@ -53,14 +44,6 @@ class CuisineView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "authentication is required for this action"}
-            )
-        if not request.user.is_admin:
-            return Response(
-                {"msg": "admin access is required for this action"}
-            )
         serializer = CuisineSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -78,6 +61,7 @@ class SingleCategoryView(APIView):
 
 class IngredientsView(APIView):
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthAdminOrReadOnly]
 
     def get(self, request):
         ingredients = Ingredient.objects.all()
@@ -85,14 +69,6 @@ class IngredientsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "authentication is required for this action"}
-            )
-        if not request.user.is_admin:
-            return Response(
-                {"msg": "admin access is required for this action"}
-            )
         serializer = IngredientSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -124,14 +100,6 @@ class RecipesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(
-                {"msg": "authentication is required for this action"}
-            )
-        if not request.user.is_admin:
-            return Response(
-                {"msg": "admin access is required for this action"}
-            )
         serializer = RecipeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -139,11 +107,11 @@ class RecipesView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RecipeDetails(APIView):
-    def get(self, request, recipe_id):
-        recipe = Recipe.objects.get(pk=recipe_id)
-        serializer = RecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+# class RecipeDetails(APIView):
+#     def get(self, request, recipe_id):
+#         recipe = Recipe.objects.get(pk=recipe_id)
+#         serializer = RecipeSerializer(recipe)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BasketView(APIView):
@@ -179,6 +147,6 @@ class ClearBasketView(APIView):
         items = Basket.objects.filter(user=request.user)
         items.delete()
         return Response(
-            {"msg": "successfully cleared the basket"},
+            {"detail": "Successfully cleared the basket"},
             status=status.HTTP_200_OK
         )

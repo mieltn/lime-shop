@@ -18,7 +18,8 @@ class UserView(APIView):
     def post(self, request):
         if not request.user.is_admin:
             return Response(
-                {"msg": "admin access is required for this action"}
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
             )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
