@@ -1,11 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 
 from limeshop.permissions import IsAuthAdminOrReadOnly
-from .models import Category, Cuisine, Recipe, Ingredient, Basket
+from .models import (
+    Category,
+    Cuisine,
+    Recipe,
+    Ingredient,
+    Basket,
+    Review,
+)
 from .serializers import (
     CategorySerializer,
     CuisineSerializer,
@@ -13,7 +20,9 @@ from .serializers import (
     RecipeReadSerializer,
     IngredientSerializer,
     BasketSerializer,
+    ReviewSerializer,
 )
+
 from . import utils
 
 
@@ -107,11 +116,11 @@ class RecipesView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class RecipeDetails(APIView):
-#     def get(self, request, recipe_id):
-#         recipe = Recipe.objects.get(pk=recipe_id)
-#         serializer = RecipeSerializer(recipe)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+class RecipeDetails(APIView):
+    def get(self, request, recipe_id):
+        recipe = Recipe.objects.get(pk=recipe_id)
+        serializer = RecipeSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BasketView(APIView):
@@ -150,3 +159,22 @@ class ClearBasketView(APIView):
             {"detail": "Successfully cleared the basket"},
             status=status.HTTP_200_OK
         )
+
+
+class ReviewsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, recipe_id):
+        reviews = Review.objects.filter(recipe_id=recipe_id)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, recipe_id):
+        request.data['user'] = request.user.id
+        request.data['recipe'] = recipe_id
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

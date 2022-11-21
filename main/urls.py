@@ -5,9 +5,10 @@ from .views import (
     SingleCategoryView,
     IngredientsView,
     RecipesView,
-    # RecipeDetails,
+    RecipeDetails,
     BasketView,
     ClearBasketView,
+    ReviewsView,
 )
 
 urlpatterns = [
@@ -19,9 +20,11 @@ urlpatterns = [
     path('ingredients/', IngredientsView.as_view()),
 
     path('recipes/', RecipesView.as_view()),
-    # path('recipes/<int:recipe_id>', RecipeDetails.as_view()),
+    path('recipes/<int:recipe_id>', RecipeDetails.as_view()),
 
     path('basket/', BasketView.as_view()),
     path('basket/ingredients/', BasketView.as_view()),
     path('basket/checkout/', ClearBasketView.as_view()),
+
+    path('recipes/<int:recipe_id>/reviews/', ReviewsView.as_view()),
 ]
